@@ -18,10 +18,9 @@
  */
 package org.fenixedu.cms.domain;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.fenixedu.bennu.core.domain.User;
 import org.fenixedu.bennu.core.groups.AnyoneGroup;
 import org.fenixedu.bennu.core.groups.Group;
@@ -37,12 +36,13 @@ import org.fenixedu.cms.exceptions.CmsDomainException;
 import org.fenixedu.commons.StringNormalizer;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.joda.time.DateTime;
-
 import pt.ist.fenixframework.Atomic;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A post models a given content to be presented to the user.
@@ -168,7 +168,7 @@ public class Post extends Post_Base implements Wrappable, Sluggable {
      * returns the group of people who can view this site.
      *
      * @return group
-     *         the access group for this site
+     * the access group for this site
      */
     public Group getCanViewGroup() {
         return getViewGroup().toGroup();
@@ -189,7 +189,7 @@ public class Post extends Post_Base implements Wrappable, Sluggable {
     }
 
     public static Post create(Site site, Page page, LocalizedString name, LocalizedString body, Category category,
-            boolean active, User creator) {
+                              boolean active, User creator) {
         Post post = new Post(site);
         post.setSite(site);
         post.setName(name);
@@ -207,7 +207,8 @@ public class Post extends Post_Base implements Wrappable, Sluggable {
     }
 
     public String getEditUrl() {
-        return this.getSite().getEditUrl() + "/" + this.getSlug() + "/edit";
+        return CoreConfiguration.getConfiguration().applicationUrl() + "/cms/posts/"
+                + getSite().getSlug() + "/" + getSlug() + "/edit";
     }
 
     private void fixOrder(List<PostFile> sortedItems) {
