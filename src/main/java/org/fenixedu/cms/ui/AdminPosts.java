@@ -1,33 +1,27 @@
 /**
  * Copyright © 2014 Instituto Superior Técnico
- * <p/>
+ *
  * This file is part of FenixEdu CMS.
- * <p/>
+ *
  * FenixEdu CMS is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * <p/>
+ *
  * FenixEdu CMS is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * <p/>
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with FenixEdu CMS.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.fenixedu.cms.ui;
 
-import java.io.IOException;
-import java.math.RoundingMode;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-
+import com.google.common.base.Strings;
+import com.google.common.math.IntMath;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.fenixedu.bennu.core.groups.AnyoneGroup;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.io.domain.GroupBasedFile;
@@ -50,14 +44,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
-
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
-import com.google.common.base.Strings;
-import com.google.common.math.IntMath;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import java.io.IOException;
+import java.math.RoundingMode;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @BennuSpringController(AdminSites.class)
 @RequestMapping("/cms/posts")
@@ -68,13 +64,13 @@ public class AdminPosts {
     @RequestMapping(value = "{slug}", method = RequestMethod.GET)
     public String posts(Model model, @PathVariable(value = "slug") String slug, @RequestParam(required = false,
             defaultValue = "1") int page, @RequestParam(required = false) String query,
-            @RequestParam(required = false) String category) {
+                        @RequestParam(required = false) String category) {
         Site site = Site.fromSlug(slug);
 
         AdminSites.canEdit(site);
 
         model.addAttribute("site", site);
-        Set<Post> posts = site.getPostSet();
+        Collection<Post> posts = site.getPostSet();
 
         if (!Strings.isNullOrEmpty(category)) {
             Category cat = site.categoryForSlug(category);
@@ -85,7 +81,7 @@ public class AdminPosts {
         }
 
         if (!Strings.isNullOrEmpty(query)) {
-            posts = posts.stream().filter(post -> matches(post, query)).collect(Collectors.toSet());
+            posts = SearchUtils.searchPosts(posts, query);
         }
 
         int pages = IntMath.divide(posts.size(), PER_PAGE, RoundingMode.CEILING);
@@ -99,25 +95,10 @@ public class AdminPosts {
         model.addAttribute("query", query);
         model.addAttribute("currentPage", page);
         model.addAttribute("pages", pages);
-        model.addAttribute(
-                "posts",
+        model.addAttribute("posts",
                 posts.stream().sorted(Post.CREATION_DATE_COMPARATOR).skip((page - 1) * PER_PAGE).limit(PER_PAGE)
                         .collect(Collectors.toList()));
         return "fenixedu-cms/posts";
-    }
-
-    private boolean matches(Post post, String query) {
-        return containsContent(post.getName(), query) || containsContent(post.getBody(), query)
-                || post.getCategoriesSet().stream().filter(cat -> matches(cat, query)).findAny().isPresent();
-    }
-
-    private boolean matches(Category category, String query) {
-        return containsContent(category.getName(), query);
-    }
-
-    private boolean containsContent(LocalizedString localizedString, String str) {
-        return localizedString.getLocales().stream().map(locale -> localizedString.getContent(locale))
-                .filter(name -> name.toLowerCase().contains(str)).findAny().isPresent();
     }
 
     @RequestMapping(value = "{slug}/create", method = RequestMethod.GET)
@@ -131,8 +112,8 @@ public class AdminPosts {
     }
 
     @RequestMapping(value = "{slug}/create", method = RequestMethod.POST)
-    public RedirectView createPost(Model model, @PathVariable(value = "slug") String slug, @RequestParam LocalizedString name,
-            RedirectAttributes redirectAttributes) {
+    public RedirectView createPost(@PathVariable(value = "slug") String slug, @RequestParam LocalizedString name,
+                                   RedirectAttributes redirectAttributes) {
         if (name.isEmpty()) {
             redirectAttributes.addFlashAttribute("emptyName", true);
             return new RedirectView("/cms/posts/" + slug + "/create", true);
@@ -157,7 +138,7 @@ public class AdminPosts {
 
     @RequestMapping(value = "{slug}/{postSlug}/edit", method = RequestMethod.GET)
     public String editPost(Model model, @PathVariable(value = "slug") String slug,
-            @PathVariable(value = "postSlug") String postSlug) {
+                           @PathVariable(value = "postSlug") String postSlug) {
         Site s = Site.fromSlug(slug);
 
         AdminSites.canEdit(s);
@@ -169,13 +150,13 @@ public class AdminPosts {
     }
 
     @RequestMapping(value = "{slug}/{postSlug}/edit", method = RequestMethod.POST)
-    public RedirectView editPost(Model model, HttpServletRequest request, @PathVariable(value = "slug") String slug,
-            @PathVariable(value = "postSlug") String postSlug, @RequestParam String newSlug, @RequestParam LocalizedString name,
-            @RequestParam LocalizedString body, @RequestParam(required = false) String[] categories, @RequestParam(
-                    required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime publicationStarts, @RequestParam(
-                    required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime publicationEnds, @RequestParam(
-                    required = false, defaultValue = "false") boolean active, @RequestParam String viewGroup,
-            RedirectAttributes redirectAttributes) {
+    public RedirectView editPost(@PathVariable(value = "slug") String slug, @PathVariable(value = "postSlug") String postSlug,
+                                 @RequestParam String newSlug, @RequestParam LocalizedString name, @RequestParam LocalizedString body, @RequestParam(
+            required = false) String[] categories,
+                                 @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime publicationStarts, @RequestParam(
+            required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime publicationEnds, @RequestParam(
+            required = false, defaultValue = "false") boolean active, @RequestParam String viewGroup,
+                                 RedirectAttributes redirectAttributes) {
 
         if (name.isEmpty()) {
             redirectAttributes.addFlashAttribute("emptyName", true);
@@ -190,7 +171,7 @@ public class AdminPosts {
 
     @Atomic
     private void editPost(Post post, LocalizedString name, LocalizedString body, String newSlug, String[] categories,
-            DateTime publicationStarts, DateTime publicationEnds, boolean active, Group viewGroup) {
+                          DateTime publicationStarts, DateTime publicationEnds, boolean active, Group viewGroup) {
         post.setName(Post.sanitize(name));
         post.setBody(Post.sanitize(body));
         post.setSlug(newSlug);
@@ -210,8 +191,9 @@ public class AdminPosts {
     }
 
     @RequestMapping(value = "{slugSite}/{slugPost}/delete", method = RequestMethod.POST)
-    public RedirectView delete(Model model, @PathVariable(value = "slugSite") String slugSite,
-            @PathVariable(value = "slugPost") String slugPost) {
+    public RedirectView delete(@PathVariable(value = "slugSite") String slugSite,
+                               @PathVariable(value = "slugPost") String slugPost) {
+
         Site s = Site.fromSlug(slugSite);
 
         AdminSites.canEdit(s);
@@ -221,9 +203,9 @@ public class AdminPosts {
     }
 
     @RequestMapping(value = "{slugSite}/{slugPost}/addAttachment", method = RequestMethod.POST)
-    public RedirectView addAttachment(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(
-            value = "slugPost") String slugPost, @RequestParam(required = true) String name,
-            @RequestParam("attachment") MultipartFile attachment) throws IOException {
+    public RedirectView addAttachment(@PathVariable(value = "slugSite") String slugSite,
+                                      @PathVariable(value = "slugPost") String slugPost, @RequestParam(required = true) String name,
+                                      @RequestParam("attachment") MultipartFile attachment) throws IOException {
 
         Site s = Site.fromSlug(slugSite);
 
@@ -238,9 +220,11 @@ public class AdminPosts {
 
     @RequestMapping(value = "{slugSite}/{slugPost}/addAttachment.json", method = RequestMethod.POST,
             produces = "application/json")
-    public @ResponseBody String addAttachmentJson(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(
+    public
+    @ResponseBody
+    String addAttachmentJson(@PathVariable(value = "slugSite") String slugSite, @PathVariable(
             value = "slugPost") String slugPost, @RequestParam(required = true) String name,
-            @RequestParam("attachment") MultipartFile attachment) throws IOException {
+                             @RequestParam("attachment") MultipartFile attachment) throws IOException {
         Site s = Site.fromSlug(slugSite);
 
         AdminSites.canEdit(s);
@@ -259,67 +243,45 @@ public class AdminPosts {
     @Atomic
     private GroupBasedFile addAttachment(String name, MultipartFile attachment, Post p) throws IOException {
         GroupBasedFile f = new GroupBasedFile(name, attachment.getOriginalFilename(), attachment.getBytes(), AnyoneGroup.get());
-
-        p.getAttachments().putFile(f, 0);
+        p.addAttachment(f, 0);
         return f;
     }
 
     @RequestMapping(value = "{slugSite}/{slugPost}/deleteAttachment", method = RequestMethod.POST)
-    public RedirectView deleteAttachment(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(
-            value = "slugPost") String slugPost, @RequestParam Integer file) throws IOException {
+    public RedirectView deleteAttachment(@PathVariable(value = "slugSite") String slugSite,
+                                         @PathVariable(value = "slugPost") String slugPost, @RequestParam Integer file) throws IOException {
         Site s = Site.fromSlug(slugSite);
 
         AdminSites.canEdit(s);
 
         Post p = s.postForSlug(slugPost);
 
-        deleteAttachment(file, p);
+        FenixFramework.atomic(() -> p.getFilesSorted().get(file).delete());
 
         return new RedirectView("/cms/posts/" + s.getSlug() + "/" + p.getSlug() + "/edit#attachments", true);
-    }
-
-    @Atomic
-    private void deleteAttachment(Integer file, Post p) {
-        p.getAttachments().removeFile(file).delete();
     }
 
     @RequestMapping(value = "{slugSite}/{slugPost}/moveAttachment", method = RequestMethod.POST)
-    public RedirectView moveAttachment(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(
-            value = "slugPost") String slugPost, @RequestParam Integer origin, @RequestParam Integer destiny) throws IOException {
+    public RedirectView moveAttachment(@PathVariable(value = "slugSite") String slugSite,
+                                       @PathVariable(value = "slugPost") String slugPost, @RequestParam Integer origin, @RequestParam Integer destiny)
+            throws IOException {
         Site s = Site.fromSlug(slugSite);
 
         AdminSites.canEdit(s);
 
         Post p = s.postForSlug(slugPost);
 
-        moveAttachment(origin, destiny, p);
+        FenixFramework.atomic(() -> p.moveFile(origin, destiny));
 
         return new RedirectView("/cms/posts/" + s.getSlug() + "/" + p.getSlug() + "/edit#attachments", true);
     }
 
-    @Atomic
-    private void moveAttachment(Integer origin, Integer destiny, Post p) {
-        p.getAttachments().move(origin, destiny);
-    }
-
-    @RequestMapping(value = "{slugSite}/{slugPost}/addFile", method = RequestMethod.POST, produces = "application/json")
-    public @ResponseBody RedirectView addFile(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(
-            value = "slugPost") String slugPost, @RequestParam("attachment") MultipartFile attachment) throws IOException {
-
-        Site s = Site.fromSlug(slugSite);
-
-        AdminSites.canEdit(s);
-
-        Post p = s.postForSlug(slugPost);
-
-        addFile(attachment, p);
-
-        return new RedirectView("/cms/posts/" + s.getSlug() + "/" + p.getSlug() + "/edit#files", true);
-    }
-
     @RequestMapping(value = "{slugSite}/{slugPost}/addFile.json", method = RequestMethod.POST, produces = "application/json")
-    public @ResponseBody String addFileJson(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(
-            value = "slugPost") String slugPost, @RequestParam("attachment") MultipartFile[] attachments) throws IOException {
+    public
+    @ResponseBody
+    String addFileJson(@PathVariable(value = "slugSite") String slugSite,
+                       @PathVariable(value = "slugPost") String slugPost, @RequestParam("attachment") MultipartFile[] attachments)
+            throws IOException {
         Site s = Site.fromSlug(slugSite);
 
         AdminSites.canEdit(s);
@@ -346,41 +308,19 @@ public class AdminPosts {
 
     @Atomic
     private GroupBasedFile addFile(MultipartFile attachment, Post p) throws IOException {
-        GroupBasedFile f =
-                new GroupBasedFile(attachment.getOriginalFilename(), attachment.getOriginalFilename(), attachment.getBytes(),
-                        AnyoneGroup.get());
-        p.getPostFiles().putFile(f);
+        String filename = attachment.getOriginalFilename();
+        GroupBasedFile f = new GroupBasedFile(filename, filename, attachment.getBytes(), AnyoneGroup.get());
+        p.addEmbeddedFile(f, 0);
         return f;
     }
 
-    @RequestMapping(value = "{slugSite}/{slugPost}/deleteFile", method = RequestMethod.POST)
-    public RedirectView deleteFile(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(
-            value = "slugPost") String slugPost, @RequestParam GroupBasedFile file) throws IOException {
-        Site s = Site.fromSlug(slugSite);
-
-        AdminSites.canEdit(s);
-
-        Post p = s.postForSlug(slugPost);
-
-        deleteFile(file, p);
-
-        return new RedirectView("/cms/posts/" + s.getSlug() + "/" + p.getSlug() + "/edit#files", true);
-    }
-
-    @Atomic
-    private void deleteFile(GroupBasedFile file, Post p) {
-        if (p.getPostFiles().contains(file)) {
-            p.getPostFiles().removeFile(file);
-            file.delete();
-        }
-    }
-
     @RequestMapping(value = "{slugSite}/{slugPost}/versions", method = RequestMethod.GET)
-    public String versions(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(value = "slugPost") String slugPost) {
+    public String versions(Model model, @PathVariable(value = "slugSite") String slugSite,
+                           @PathVariable(value = "slugPost") String slugPost) {
         Site s = Site.fromSlug(slugSite);
 
         AdminSites.canEdit(s);
-        
+
         Post p = s.postForSlug(slugPost);
         model.addAttribute("post", p);
         model.addAttribute("site", s);
@@ -389,8 +329,9 @@ public class AdminPosts {
 
     @RequestMapping(value = "{slugSite}/{slugPost}/versionData", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String versionData(Model model, @PathVariable(value = "slugSite") String slugSite,
-            @PathVariable(value = "slugPost") String slugPost, @RequestParam(required = false) PostContentRevision revision) {
+    public String versionData(@PathVariable(value = "slugSite") String slugSite,
+                              @PathVariable(value = "slugPost") String slugPost,
+                              @RequestParam(required = false) PostContentRevision revision) {
         Site s = Site.fromSlug(slugSite);
 
         AdminSites.canEdit(s);
@@ -400,7 +341,7 @@ public class AdminPosts {
         if (revision == null) {
             revision = p.getLatestRevision();
         }
-        
+
         if (revision.getPost() != p) {
             throw new RuntimeException("Invalid Revision");
         }
@@ -414,8 +355,8 @@ public class AdminPosts {
         json.addProperty("id", revision.getExternalId());
         json.addProperty("next", Optional.ofNullable(revision.getNext()).map(x -> x.getExternalId()).orElse(null));
         json.addProperty("previous", Optional.ofNullable(revision.getPrevious()).map(x -> x.getExternalId()).orElse(null));
-        
-        if (revision.getPrevious() != null){
+
+        if (revision.getPrevious() != null) {
             json.add("previousContent", revision.getPrevious().getBody().json());
         }
 
@@ -423,7 +364,7 @@ public class AdminPosts {
     }
 
     @RequestMapping(value = "{slugSite}/{slugPost}/revertTo", method = RequestMethod.POST)
-    public RedirectView reverttTo(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(
+    public RedirectView revertTo(Model model, @PathVariable(value = "slugSite") String slugSite, @PathVariable(
             value = "slugPost") String slugPost, @RequestParam PostContentRevision revision) {
         Site s = Site.fromSlug(slugSite);
 
@@ -443,5 +384,4 @@ public class AdminPosts {
 
         return new RedirectView("/cms/posts/" + s.getSlug() + "/" + p.getSlug() + "/edit", true);
     }
-
 }
