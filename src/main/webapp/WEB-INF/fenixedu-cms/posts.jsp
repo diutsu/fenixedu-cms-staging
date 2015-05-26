@@ -29,38 +29,33 @@
 ${portal.toolkit()}
 
 <div class="row">
-    <div class="col-sm-8"><a href="" data-toggle="modal" data-target="#create-post" class="btn btn-primary"><i class="icon icon-plus"></i> New</a></div>
-    <div class="col-sm-4">
-        <div class="row">
-        <div class="col-sm-4">
-        <div class="btn-group">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
-                    aria-expanded="false">
-                <c:if test="${category!=null}">
-                    ${category.name.content}
-                </c:if>
-                <c:if test="${category==null}">
-                    Category
-                </c:if>
-                <span class="caret"></span>
-            </button>
+    <div class="col-sm-5"><a href="" data-toggle="modal" data-target="#create-post" class="btn btn-primary"><i class="icon icon-plus"></i> New</a></div>
+    <div class="col-sm-7">
+        <div class="pull-right">
+            <div class="form-inline">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                        <c:choose>
+                            <c:when test="${category!=null}">${category.name.content}</c:when>
+                            <c:otherwise>Category</c:otherwise>
+                        </c:choose>
+                        <span class="caret"></span>
+                    </button>
 
-            <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                <li><a href="#" onclick="searchPosts(null)">All</a></li>
-                <c:forEach var="cat" items="${site.categories}">
-                    <li><a href="#" onclick='searchPosts("${cat.slug}")'>${cat.name.content}</a></li>
-                </c:forEach>
-            </ul>
-        </div>
-        </div>
-            <div class="col-sm-8">
-                <input id="search-query" type="text" class="form-control" placeholder="Search for..." value="${query}">
+                    <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                        <li><a href="#" onclick="searchPosts(null)">All</a></li>
+                        <c:forEach var="cat" items="${site.categories}">
+                            <li><a href="#" onclick='searchPosts("${cat.slug}")'>${cat.name.content}</a></li>
+                        </c:forEach>
+                    </ul>
+                </div>
+                <div class="form-group">
+                    <input id="search-query" type="text" class="form-control" placeholder="Search for..." value="${query}">                    
+                </div>
             </div>
         </div>
     </div>
-    <!-- /.col-lg-6 -->
 </div>
-<!-- /.row -->
 
 <p></p>
 <script type="application/javascript">
