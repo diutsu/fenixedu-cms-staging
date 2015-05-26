@@ -35,7 +35,7 @@ ${portal.toolkit()}
         <button id="next" class="btn btn-default"><i class="icon icon-left-open"></i></button>
     </div>
     <div class="col-sm-4">
-        
+
     </div>
     <div class="col-sm-4 ">
         <button id="previous" class="btn btn-default pull-right"><i class="icon icon-right-open"></i></button>
@@ -102,12 +102,16 @@ ${portal.toolkit()}
         }else{
             var params = {revision:id}
         }
-        
+
         $.post(Bennu.contextPath + "/cms/posts/${site.slug}/${post.slug}/versionData",params).done(function(e){
-            
-            var content = e.content['en-GB'];
-            var previousContent = e.previousContent['en-GB'];
-   
+
+            var content = e.content['en-GB']
+
+            var previousContent = "";;
+            if (e.previousContent){
+              var previousContent = e.previousContent['en-GB'];
+            }
+
             var diff = JsDiff.diffWordsWithSpace(previousContent, content);
             var x = ""
             var before = "";
@@ -184,4 +188,3 @@ ${portal.toolkit()}
 <form action="revertTo" id="revertForm" method="post">
     <input type="hidden" name="revision" id="revisionToRevert">
 </form>
-

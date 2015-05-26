@@ -23,7 +23,7 @@
 
 <c:set var="locale" value="<%= org.fenixedu.commons.i18n.I18N.getLocale() %>"/>
 <script type="text/javascript">
-	var db = ${views};
+	var db = ${views != null ? views : '[]'}
 </script>
 
 	<div class="page-header">
@@ -47,11 +47,10 @@
       	</ul>
       	</div>
 	    <a href="${pageContext.request.contextPath}/cms/sites/${site.slug}/edit" class="btn btn-default">Settings</a>
-
+			
 			<c:if test="${site.published}">
 				<a href="${site.fullUrl}" target="_blank" class="btn btn-default"><spring:message code="action.link"/></a>
 			</c:if>
-
 	  </div>
 	  <div class="col-sm-4">
 	    <input type="search" class="form-control pull-right" placeholder="Search posts...">
@@ -72,7 +71,7 @@
 				</div>
 			</div>
 			<svg id="visualisation" width="100%" height="350">
-
+				
 				<defs>
 				  <pattern id="pattern1"
 				           x="0" y="0" width="49" height="49"
@@ -83,7 +82,7 @@
 				  </pattern>
 				</defs>
 
-				<rect x="0" y="0" width="100%" height="450" style=" fill: url(#pattern1);" />
+				<rect x="0" y="0" width="100%" height="450" style=" fill: url(#pattern1);" />    
 			</svg>
 				<p class="help-block">
 					This Analytics view is provided by <a href="http://google.com/analytics">Google Analytics</a>. To get more insights about your data, visit their site.
@@ -94,7 +93,7 @@
 				var listDb = []
 				var i = 0;
 				for (var x in db) {
-					db[x].i = i++;
+					db[x].i = i++; 
 					listDb.push(db[x]);
 				};
 				function genGraph(){
@@ -174,7 +173,7 @@
 			         		.attr("cy", function(d, i) { return yRange(parseInt(d.visitors)); })
 			         		.attr("r", function(d, i) { return 3 });
 				  });
-
+				
 				};
 				genGraph();
 				$( window ).resize(function() {
@@ -219,7 +218,7 @@
 			        </div>
 			    </c:when>
 
-			    <c:otherwise>
+			    <c:otherwise> 
 			        <c:forEach var="activity" items="${activities}">
 			           	<div class="row activity-day">
 							<div class="col-sm-2">

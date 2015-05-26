@@ -26,8 +26,10 @@
     <h2><small>${site.name.content}</small></h2>
 </div>
 
+${portal.toolkit()}
+
 <div class="row">
-    <div class="col-sm-8"><a href="" class="btn btn-primary"><i class="icon icon-plus"></i> New</a></div>
+    <div class="col-sm-8"><a href="" data-toggle="modal" data-target="#create-post" class="btn btn-primary"><i class="icon icon-plus"></i> New</a></div>
     <div class="col-sm-4">
         <div class="row">
         <div class="col-sm-4">
@@ -48,8 +50,8 @@
                 <c:forEach var="cat" items="${site.categories}">
                     <li><a href="#" onclick='searchPosts("${cat.slug}")'>${cat.name.content}</a></li>
                 </c:forEach>
-            </ul>            
-        </div>  
+            </ul>
+        </div>
         </div>
             <div class="col-sm-8">
                 <input id="search-query" type="text" class="form-control" placeholder="Search for..." value="${query}">
@@ -70,12 +72,6 @@
         searchQuery += query ? "query=" + query : "";
         window.location.search = searchQuery;
     }
-
-    $("#search-query").keyup(function(e){
-        if(e.keyCode == 13){
-            searchPosts();
-        }
-    });
 
 </script>
 
@@ -132,59 +128,107 @@
                                 <ul class="dropdown-menu dropdown-menu-right" role="menu">
                                     <li><a href="#"><i class="glyphicon glyphicon-bullhorn"></i> Unpublish</a></li>
                                     <li><a href="#"><i class="glyphicon glyphicon-trash"></i> Delete</a></li>
-                                </ul>            
-                            </div>  
+                                </ul>
+                            </div>
                         </div>
 
-                    </td>
-                </tr>
-            </c:forEach>
-            </tbody>
-        </table>
-        <c:if test="${pages > 1}">
-            <nav class="text-center">
-                <ul class="pagination">
-                    <li ${currentPage == 1 ? 'class="disabled"' : ''}>
-                        <a href="?page=${currentPage - 1}">&laquo;</a>
-                    </li>
-                    <li class="disabled"><a>${currentPage} / ${pages}</a></li>
-                    <li ${currentPage == pages ? 'class="disabled"' : ''}>
-                        <a href="?page=${currentPage + 1}">&raquo;</a>
-                    </li>
-                </ul>
-            </nav>
-        </c:if>
-    </c:otherwise>
+					</td>
+				</tr>
+			</c:forEach>
+			</tbody>
+		</table>
+		<c:if test="${pages > 1}">
+			<nav class="text-center">
+				<ul class="pagination">
+					<li ${currentPage == 1 ? 'class="disabled"' : ''}>
+						<a href="?page=${currentPage - 1}">&laquo;</a>
+					</li>
+					<li class="disabled"><a>${currentPage} / ${pages}</a></li>
+					<li ${currentPage == pages ? 'class="disabled"' : ''}>
+						<a href="?page=${currentPage + 1}">&raquo;</a>
+					</li>
+				</ul>
+			</nav>
+		</c:if>
+	</c:otherwise>
 </c:choose>
 
 
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
-                        class="sr-only">Close</span></button>
-                <h4><spring:message code="post.manage.label.delete.post"/></h4>
-            </div>
-            <div class="modal-body">
-                <p><spring:message code="post.manage.label.delete.post.message"/></p>
-            </div>
-            <div class="modal-footer">
-                <form id="deleteForm" method="POST">
-                    <button type="submit" class="btn btn-danger"><spring:message code="action.delete"/></button>
-                    <a class="btn btn-default" data-dismiss="modal"><spring:message code="action.cancel"/></a>
-                </form>
-            </div>
-        </div>
-    </div>
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+						class="sr-only">Close</span></button>
+				<h4><spring:message code="post.manage.label.delete.post"/></h4>
+			</div>
+			<div class="modal-body">
+				<p><spring:message code="post.manage.label.delete.post.message"/></p>
+			</div>
+			<div class="modal-footer">
+				<form id="deleteForm" method="POST">
+					<button type="submit" class="btn btn-danger"><spring:message code="action.delete"/></button>
+					<a class="btn btn-default" data-dismiss="modal"><spring:message code="action.cancel"/></a>
+				</form>
+			</div>
+		</div>
+	</div>
 </div>
 
-<script>
-    (function () {
-        $("a[data-post]").on('click', function (el) {
-            var postSlug = el.target.getAttribute('data-post');
-            $('#deleteForm').attr('action', '${pageContext.request.contextPath}/cms/posts/${site.slug}/' + postSlug + '/delete');
-            $('#deleteModal').modal('show');
-        });
-    })();
+<script type="application/javascript">
+	(function () {
+		$('#search-query').keypress(function (e) {
+			if (e.which == 13) {
+				searchPosts($('#search-query').val());
+			}
+		});
+
+		$("a[data-post]").on('click', function (el) {
+			var postSlug = el.target.getAttribute('data-post');
+			$('#deleteForm').attr('action', '${pageContext.request.contextPath}/cms/posts/${site.slug}/' + postSlug + '/delete');
+			$('#deleteModal').modal('show');
+		});
+
+		$('.category-item').on('click', function (e) {
+			e.preventDefault();
+			searchPosts($('#search-query').val(), $(e.target).data('category-slug'));
+		});
+
+		function searchPosts(query, categorySlug) {
+			var searchQuery = "";
+			searchQuery += categorySlug ? "category=" + categorySlug : "";
+			searchQuery += query ? "&query=" + query : "";
+			window.location.search = searchQuery;
+		}
+	})();
 </script>
+
+<div class="modal fade" id="create-post" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <form class="form-horizontal" action="${pageContext.request.contextPath}/cms/posts/${site.slug}/create" method="post" role="form">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"> </button>
+        <h3 class="modal-title">New Post</h3>
+        <small>This could be the start of something great!</small>
+      </div>
+      <div class="modal-body">
+        <div class="${emptyName ? "form-group has-error" : "form-group"}">
+            <label for="inputEmail3" class="col-sm-2 control-label"><spring:message code="post.create.label.name"/></label>
+
+            <div class="col-sm-10">
+                <input bennu-localized-string required-any name="name" id="inputEmail3"
+                       placeholder="<spring:message code="post.create.label.name" />">
+                <c:if test="${emptyName != null}"><p class="text-danger"><spring:message code="post.create.error.emptyName"/></p>
+                </c:if>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="Submit" class="btn btn-primary">Make</button>
+      </div>
+        </form>
+    </div>
+  </div>
+</div>
