@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import com.google.common.math.IntMath;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+
 import org.fenixedu.bennu.core.groups.AnyoneGroup;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.io.domain.GroupBasedFile;
@@ -31,6 +32,7 @@ import org.fenixedu.cms.domain.Category;
 import org.fenixedu.cms.domain.Post;
 import org.fenixedu.cms.domain.PostContentRevision;
 import org.fenixedu.cms.domain.Site;
+import org.fenixedu.commons.i18n.I18N;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.joda.time.DateTime;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -44,6 +46,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
+
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
 
@@ -147,6 +150,20 @@ public class AdminPosts {
         model.addAttribute("site", s);
         model.addAttribute("post", p);
         return "fenixedu-cms/editPost";
+    }
+    
+    @RequestMapping(value="{slug}/{postSlug}/createCategory", method=RequestMethod.POST)
+    public RedirectView createCategory(@PathVariable(value = "slug") String slug, @PathVariable(value = "postSlug") String postSlug, @RequestParam LocalizedString name) {
+        Site site = Site.fromSlug(slug);
+        AdminSites.canEdit(site);
+        Post post = site.postForSlug(postSlug);
+        
+        FenixFramework.atomic(()->{
+            Category p = new Category(site);
+            p.setName(name);
+        });
+        
+        return new RedirectView("/cms/posts/" + site.getSlug() + "/" + post.getSlug() + "/edit", true);
     }
 
     @RequestMapping(value = "{slug}/{postSlug}/edit", method = RequestMethod.POST)
