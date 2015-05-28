@@ -53,7 +53,7 @@
 			</c:if>
 	  </div>
 	  <div class="col-sm-4">
-	    <input type="search" class="form-control pull-right" placeholder="Search posts...">
+	    <input type="search" id="search-query" class="form-control pull-right" placeholder="Search posts...">
 	  </div>
 	</div>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
@@ -298,3 +298,17 @@
   margin-bottom: 0;
 }
 </style>
+
+<script type="application/javascript">
+	(function () {
+		$('#search-query').keypress(function (e) {
+			if (e.which == 13) {
+				debugger;
+				var searchQuery = $('#search-query').val();
+				if(searchQuery) {
+					window.location.href = "${pageContext.request.contextPath}/cms/posts/${site.slug}?query=" + searchQuery;
+				}
+			}
+		});
+	})();
+</script>
