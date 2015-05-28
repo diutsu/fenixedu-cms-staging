@@ -20,13 +20,12 @@
 --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring" %>
+${portal.toolkit()}
 
 <div class="page-header">
-    <h1>Sites</h1>
-    <h2><small>${site.name.content}</small></h2>
+    <h1>Posts</h1>
+    <h2><small><a href="${pageContext.request.contextPath}/cms/sites/${site.slug}">${site.name.content}</a></small></h2>
 </div>
-
-${portal.toolkit()}
 
 <div class="row">
     <div class="col-sm-5"><a href="" data-toggle="modal" data-target="#create-post" class="btn btn-primary"><i class="icon icon-plus"></i> New</a></div>
