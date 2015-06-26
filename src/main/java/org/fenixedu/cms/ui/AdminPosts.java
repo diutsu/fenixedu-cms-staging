@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.fenixedu.bennu.core.groups.AnyoneGroup;
 import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.io.domain.GroupBasedFile;
 import org.fenixedu.bennu.io.servlets.FileDownloadServlet;
@@ -65,8 +64,8 @@ public class AdminPosts {
 
     @RequestMapping(value = "{slug}", method = RequestMethod.GET)
     public String posts(Model model, @PathVariable(value = "slug") String slug, @RequestParam(required = false,
-    defaultValue = "1") int page, @RequestParam(required = false) String query,
-            @RequestParam(required = false) String category) {
+            defaultValue = "1") int page, @RequestParam(required = false) String query,
+    @RequestParam(required = false) String category) {
         Site site = Site.fromSlug(slug);
 
         AdminSites.canEdit(site);
@@ -100,7 +99,7 @@ public class AdminPosts {
         model.addAttribute(
                 "posts",
                 posts.stream().sorted(Post.CREATION_DATE_COMPARATOR).skip((page - 1) * PER_PAGE).limit(PER_PAGE)
-                .collect(Collectors.toList()));
+                        .collect(Collectors.toList()));
         return "fenixedu-cms/posts";
     }
 
@@ -170,10 +169,10 @@ public class AdminPosts {
     public RedirectView editPost(@PathVariable(value = "slug") String slug, @PathVariable(value = "postSlug") String postSlug,
             @RequestParam String newSlug, @RequestParam LocalizedString name, @RequestParam LocalizedString body, @RequestParam(
                     required = false) String[] categories,
-            @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime publicationStarts, @RequestParam(
-                    required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime publicationEnds, @RequestParam(
-                    required = false, defaultValue = "false") boolean active, @RequestParam String viewGroup,
-            RedirectAttributes redirectAttributes) {
+                    @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime publicationStarts, @RequestParam(
+                            required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime publicationEnds, @RequestParam(
+                                    required = false, defaultValue = "false") boolean active, @RequestParam String viewGroup,
+                                    RedirectAttributes redirectAttributes) {
 
         if (name.isEmpty()) {
             redirectAttributes.addFlashAttribute("emptyName", true);
@@ -255,7 +254,7 @@ public class AdminPosts {
 
     @Atomic
     private GroupBasedFile addAttachment(String name, MultipartFile attachment, Post p) throws IOException {
-        GroupBasedFile f = new GroupBasedFile(name, attachment.getOriginalFilename(), attachment.getBytes(), AnyoneGroup.get());
+        GroupBasedFile f = new GroupBasedFile(name, attachment.getOriginalFilename(), attachment.getBytes(), Group.anyone());
         p.addAttachment(f, 0);
         return f;
     }
@@ -277,7 +276,7 @@ public class AdminPosts {
     @RequestMapping(value = "{slugSite}/{slugPost}/moveAttachment", method = RequestMethod.POST)
     public RedirectView moveAttachment(@PathVariable(value = "slugSite") String slugSite,
             @PathVariable(value = "slugPost") String slugPost, @RequestParam Integer origin, @RequestParam Integer destiny)
-                    throws IOException {
+            throws IOException {
         Site s = Site.fromSlug(slugSite);
 
         AdminSites.canEdit(s);
@@ -319,7 +318,7 @@ public class AdminPosts {
     @Atomic
     private GroupBasedFile addFile(MultipartFile attachment, Post p) throws IOException {
         String filename = attachment.getOriginalFilename();
-        GroupBasedFile f = new GroupBasedFile(filename, filename, attachment.getBytes(), AnyoneGroup.get());
+        GroupBasedFile f = new GroupBasedFile(filename, filename, attachment.getBytes(), Group.anyone());
         p.addEmbeddedFile(f, 0);
         return f;
     }

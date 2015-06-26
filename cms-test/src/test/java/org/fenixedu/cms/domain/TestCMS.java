@@ -1,14 +1,6 @@
 package org.fenixedu.cms.domain;
 
-import org.fenixedu.bennu.core.groups.AnonymousGroup;
-import org.fenixedu.bennu.core.groups.AnyoneGroup;
-import org.fenixedu.bennu.core.groups.CustomGroupRegistry;
-import org.fenixedu.bennu.core.groups.CustomGroupRegistry.BooleanParser;
-import org.fenixedu.bennu.core.groups.CustomGroupRegistry.DateTimeParser;
-import org.fenixedu.bennu.core.groups.CustomGroupRegistry.StringParser;
-import org.fenixedu.bennu.core.groups.LoggedGroup;
-import org.fenixedu.bennu.core.groups.NobodyGroup;
-import org.fenixedu.bennu.core.groups.UserGroup;
+import org.fenixedu.bennu.core.groups.ManualGroupRegister;
 import org.joda.time.DateTime;
 import org.joda.time.Seconds;
 import org.junit.BeforeClass;
@@ -22,15 +14,7 @@ public class TestCMS {
     protected static final int DATETIME_EPSILON = 1;
 
     public static void ensure() {
-        CustomGroupRegistry.registerCustomGroup(AnonymousGroup.class);
-        CustomGroupRegistry.registerCustomGroup(AnyoneGroup.class);
-        CustomGroupRegistry.registerCustomGroup(LoggedGroup.class);
-        CustomGroupRegistry.registerCustomGroup(NobodyGroup.class);
-        CustomGroupRegistry.registerCustomGroup(UserGroup.class);
-        CustomGroupRegistry.registerArgumentParser(UserGroup.UserArgumentParser.class);
-        CustomGroupRegistry.registerArgumentParser(BooleanParser.class);
-        CustomGroupRegistry.registerArgumentParser(StringParser.class);
-        CustomGroupRegistry.registerArgumentParser(DateTimeParser.class);
+        ManualGroupRegister.ensure();
     }
 
     @BeforeClass
