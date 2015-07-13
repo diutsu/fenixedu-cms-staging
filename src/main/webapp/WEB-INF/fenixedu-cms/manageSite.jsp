@@ -242,18 +242,18 @@
 
 <div class="row">
 	<div class="col-sm-6 glance ">
-		<i class="glance-icon glyphicon glyphicon-pushpin"></i> <a href="">${site.postSet.size()} Posts</a>
+		<i class="glance-icon glyphicon glyphicon-pushpin"></i> <a href="${pageContext.request.contextPath}/cms/posts/${site.slug}">${site.postSet.size()} Posts</a>
 	</div>
 	<div class="col-sm-6 glance ">
-		<i class="glance-icon glyphicon glyphicon-file"></i> <a href="">${site.pagesSet.size()} Pages</a>
+		<i class="glance-icon glyphicon glyphicon-file"></i> <a href="${pageContext.request.contextPath}/cms/pages/${site.slug}">${site.pagesSet.size()} Pages</a>
 	</div>
 </div>
 <div class="row">
 	<div class="col-sm-6 glance ">
-		<i class="glance-icon glyphicon glyphicon-th-list"></i> <a href="">${site.menusSet.size()} Menus</a>
+		<i class="glance-icon glyphicon glyphicon-th-list"></i> <a href="${pageContext.request.contextPath}/cms/menus/${site.slug}">${site.menusSet.size()} Menus</a>
 	</div>
 	<div class="col-sm-6 glance ">
-		<i class="glance-icon glyphicon glyphicon-edit"></i> <a href="">Published</a>
+		<i class="glance-icon glyphicon glyphicon-edit"></i> <a href="${pageContext.request.contextPath}/cms/sites/${site.slug}/edit">Published</a>
 	</div>
 </div>
 
