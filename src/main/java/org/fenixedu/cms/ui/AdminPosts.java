@@ -19,6 +19,7 @@
 package org.fenixedu.cms.ui;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -26,6 +27,7 @@ import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.cms.domain.Category;
 import org.fenixedu.cms.domain.Post;
 import org.fenixedu.cms.domain.PostFile;
+import org.fenixedu.cms.domain.PostMetadata;
 import org.fenixedu.cms.domain.Site;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import pt.ist.fenixframework.FenixFramework;
@@ -147,6 +150,31 @@ public class AdminPosts {
         Post p = s.postForSlug(slugPost);
         PostFile postFile = service.createFile(p, name, embedded, p.getCanViewGroup(), file);
         return service.serializePostFile(postFile).toString();
+    }
+
+    @RequestMapping(value = "{slugSite}/{slugPost}/metadata", method = RequestMethod.GET)
+    public String viewEditMetadata(Model model, @PathVariable String slugSite, @PathVariable String slugPost) {
+        Site s = Site.fromSlug(slugSite);
+        AdminSites.canEdit(s);
+        Post post = s.postForSlug(slugPost);
+        model.addAttribute("site", s);
+        model.addAttribute("post", post);
+        model.addAttribute("metadata", Optional.ofNullable(post.getMetadata()).map(PostMetadata::json).map(
+            JsonElement::toString).orElseGet(()->new JsonObject().toString()));
+        return "fenixedu-cms/editMetadata";
+    }
+
+    @RequestMapping(value = "{slugSite}/{slugPost}/metadata", method = RequestMethod.POST)
+    public RedirectView editMetadata(@PathVariable String slugSite,
+                                         @PathVariable String slugPost,
+                                         @RequestParam String metadata) {
+        Site s = Site.fromSlug(slugSite);
+        Post post = s.postForSlug(slugPost);
+        FenixFramework.atomic(()-> {
+            AdminSites.canEdit(s);
+            post.setMetadata(PostMetadata.internalize(metadata));
+        });
+        return new RedirectView("/cms/posts/" + s.getSlug() + "/" + post.getSlug() + "/metadata", true);
     }
 
 }
