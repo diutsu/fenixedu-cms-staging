@@ -20,6 +20,8 @@
 --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring" %>
+<%@taglib uri="http://fenixedu.com/cms/permissions" prefix="permissions" %>
+
 ${portal.toolkit()}
 
 <div class="page-header">
@@ -110,7 +112,14 @@ ${portal.toolkit()}
 
                                 <ul class="dropdown-menu dropdown-menu-right" role="menu">
                                     <li><a href="#"><i class="glyphicon glyphicon-bullhorn"></i> Unpublish</a></li>
-                                    <li><a href="#"><i class="glyphicon glyphicon-trash"></i> Delete</a></li>
+                                    <c:choose>
+                                        <c:when test="${!post.isVisible() && permissions:canDoThis(site, 'DELETE_POSTS')}">
+                                            <li><a href="#" data-post="${post.slug}"><i class="glyphicon    glyphicon-trash"></i> Delete</a></li>
+                                        </c:when>
+                                        <c:when test="${post.isVisible() && permissions:canDoThis(site, 'DELETE_POSTS_PUBLISHED')}">
+                                            <li><a href="#" data-post="${post.slug}"><i class="glyphicon glyphicon-trash"></i> Delete</a></li>
+                                        </c:when>
+                                    </c:choose>
                                 </ul>
                             </div>
                         </div>

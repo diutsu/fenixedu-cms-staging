@@ -23,8 +23,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
 import org.fenixedu.cms.domain.Category;
+import org.fenixedu.cms.domain.PermissionsArray.Permission;
 import org.fenixedu.cms.domain.Post;
 import org.fenixedu.cms.domain.PostFile;
 import org.fenixedu.cms.domain.PostMetadata;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
 
 import pt.ist.fenixframework.FenixFramework;
 
+import static org.fenixedu.cms.domain.PermissionEvaluation.ensureCanDoThis;
 import static org.fenixedu.cms.ui.SearchUtils.searchPosts;
 
 @BennuSpringController(AdminSites.class)
@@ -134,12 +137,20 @@ public class AdminPosts {
 
     @RequestMapping(value = "{slugSite}/{slugPost}/delete", method = RequestMethod.POST)
     public RedirectView delete(@PathVariable String slugSite, @PathVariable String slugPost) {
-        Site s = Site.fromSlug(slugSite);
         FenixFramework.atomic(() -> {
+            Site s = Site.fromSlug(slugSite);
             AdminSites.canEdit(s);
-            s.postForSlug(slugPost).delete();
+            Post post = s.postForSlug(slugPost);
+            ensureCanDoThis(s, Permission.DELETE_POSTS);
+            if(post.isVisible()) {
+                ensureCanDoThis(s, Permission.DELETE_POSTS_PUBLISHED);
+            }
+            if(!Authenticate.getUser().equals(post.getCreatedBy())) {
+                ensureCanDoThis(s, Permission.DELETE_OTHERS_POSTS);
+            }
+            post.delete();
         });
-        return new RedirectView("/cms/posts/" + s.getSlug() + "", true);
+        return new RedirectView("/cms/posts/" + slugSite + "", true);
     }
 
     @RequestMapping(value = "{slugSite}/{slugPost}/files", method = RequestMethod.POST, produces = JSON)
