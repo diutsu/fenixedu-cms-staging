@@ -25,6 +25,7 @@ import org.fenixedu.cms.api.json.PageAdapter;
 import org.fenixedu.cms.api.json.PostAdapter;
 import org.fenixedu.cms.api.json.SiteAdapter;
 import org.fenixedu.cms.domain.*;
+import org.fenixedu.cms.domain.PermissionsArray.Permission;
 import org.fenixedu.cms.domain.component.Component;
 import org.fenixedu.commons.i18n.LocalizedString;
 
@@ -113,6 +114,7 @@ public class SiteResource extends BennuRestResource {
 
     @Atomic(mode = TxMode.WRITE)
     private Post createPostFromJson(Site site, JsonObject jObj) {
+        PermissionEvaluation.ensureCanDoThis(site, Permission.CREATE_POST);
         Post post = new Post(site);
 
         if (jObj.has("name") && !jObj.get("name").isJsonNull() && jObj.get("name").isJsonObject()) {
