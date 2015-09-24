@@ -10,8 +10,6 @@ import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.io.domain.GroupBasedFile;
 import org.fenixedu.bennu.io.servlet.FileDownloadServlet;
 import org.fenixedu.cms.domain.Category;
-import org.fenixedu.cms.domain.PermissionEvaluation;
-import org.fenixedu.cms.domain.PermissionsArray;
 import org.fenixedu.cms.domain.Post;
 import org.fenixedu.cms.domain.PostFile;
 import org.fenixedu.cms.domain.PostMetadata;
@@ -38,7 +36,6 @@ public class AdminPostsService {
 
     @Atomic(mode = Atomic.TxMode.WRITE)
     public Post createPost(Site site, LocalizedString name) {
-      	PermissionEvaluation.ensureCanDoThis(site, PermissionsArray.Permission.CREATE_POST);
 	Post post = new Post(site);
 	post.setName(Post.sanitize(name));
 	post.setBody(new LocalizedString());

@@ -149,22 +149,21 @@ public class SiteResource extends BennuRestResource {
 
     @Atomic(mode = TxMode.WRITE)
     private Page createPageFromJson(Site site, JsonObject jObj) {
-
-        Page page = new Page(site);
-
+        PermissionEvaluation.ensureCanDoThis(site, Permission.CREATE_PAGE);
         if (jObj.has("name") && !jObj.get("name").isJsonNull() && jObj.get("name").isJsonObject()) {
-            page.setName(LocalizedString.fromJson(jObj.get("name")));
+            Page page = new Page(site, LocalizedString.fromJson(jObj.get("name")));
+
+            if (jObj.has("slug") && !jObj.get("slug").isJsonNull()) {
+                page.setSlug(jObj.get("slug").getAsString());
+            }
+
+            if (jObj.has("published") && !jObj.get("published").isJsonNull()) {
+                page.setPublished(jObj.get("published").getAsBoolean());
+            }
+            return page;
         }
 
-        if (jObj.has("slug") && !jObj.get("slug").isJsonNull()) {
-            page.setSlug(jObj.get("slug").getAsString());
-        }
-
-        if (jObj.has("published") && !jObj.get("published").isJsonNull()) {
-            page.setPublished(jObj.get("published").getAsBoolean());
-        }
-
-        return page;
+        return null;
     }
 
     @GET
