@@ -76,6 +76,12 @@ public class DefaultRoles {
     permissions.add(Permission.PUBLISH_PAGES);
     permissions.add(Permission.PUBLISH_POSTS);
     permissions.add(Permission.PUBLISH_SITE);
+    permissions.add(Permission.CREATE_MENU);
+    permissions.add(Permission.DELETE_MENU);
+    permissions.add(Permission.LIST_MENUS);
+    permissions.add(Permission.EDIT_MENU);
+    permissions.add(Permission.CREATE_MENU_ITEM);
+    permissions.add(Permission.DELETE_MENU_ITEM);
     return permissions;
   }
 
@@ -99,6 +105,11 @@ public class DefaultRoles {
       permissions.add(Permission.CREATE_CATEGORY);
       permissions.add(Permission.PUBLISH_PAGES);
       permissions.add(Permission.PUBLISH_POSTS);
+
+      permissions.add(Permission.LIST_MENUS);
+      permissions.add(Permission.EDIT_MENU);
+      permissions.add(Permission.CREATE_MENU_ITEM);
+      permissions.add(Permission.DELETE_MENU_ITEM);
       return permissions;
   }
 
@@ -112,6 +123,11 @@ public class DefaultRoles {
     permissions.add(Permission.LIST_CATEGORIES);
     permissions.add(Permission.CREATE_CATEGORY);
     permissions.add(Permission.PUBLISH_POSTS);
+
+    permissions.add(Permission.LIST_MENUS);
+    permissions.add(Permission.EDIT_MENU);
+    permissions.add(Permission.CREATE_MENU_ITEM);
+    permissions.add(Permission.DELETE_MENU_ITEM);
     return permissions;
   }
 
