@@ -15,7 +15,7 @@
 	<inceptionYear>2014</inceptionYear>
 
 	<properties>
-		<version.org.fenixedu.bennu>4.0.0.RC2</version.org.fenixedu.bennu>
+		<version.org.fenixedu.bennu>3.4.1</version.org.fenixedu.bennu>
 	</properties>
 
 	<issueManagement>
