@@ -1,6 +1,6 @@
 package org.fenixedu.cms.domain;
 
-import org.fenixedu.bennu.core.groups.NobodyGroup;
+import org.fenixedu.bennu.core.groups.Group;
 import org.fenixedu.bennu.signals.DomainObjectEvent;
 import org.fenixedu.bennu.signals.Signal;
 
@@ -14,7 +14,7 @@ public class Role extends Role_Base {
         setName(template.getDescription());
         setRoleTemplate(template);
         setSite(site);
-        setGroup(NobodyGroup.get().toPersistentGroup());
+        setGroup(Group.nobody().toPersistentGroup());
         Signal.emit(SIGNAL_CREATED,new DomainObjectEvent<>(this));
     }
 
