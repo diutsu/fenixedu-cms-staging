@@ -1,26 +1,21 @@
 package org.fenixedu.cms.api.json;
 
-import static org.fenixedu.cms.domain.PermissionEvaluation.ensureCanDoThis;
-import static org.fenixedu.cms.domain.PermissionsArray.Permission.CHANGE_THEME;
-import static org.fenixedu.cms.domain.PermissionsArray.Permission.EDIT_SITE_INFORMATION;
-import static org.fenixedu.cms.domain.PermissionsArray.Permission.MANAGE_ANALYTICS;
-import static org.fenixedu.cms.domain.PermissionsArray.Permission.PUBLISH_SITE;
-
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.fenixedu.bennu.core.annotation.DefaultJsonAdapter;
+import org.fenixedu.bennu.core.api.json.DateTimeViewer;
+import org.fenixedu.bennu.core.api.json.LocalizedStringViewer;
 import org.fenixedu.bennu.core.domain.exceptions.BennuCoreDomainException;
 import org.fenixedu.bennu.core.json.JsonAdapter;
 import org.fenixedu.bennu.core.json.JsonBuilder;
-import org.fenixedu.bennu.core.json.adapters.DateTimeViewer;
-import org.fenixedu.bennu.core.json.adapters.LocalizedStringViewer;
 import org.fenixedu.bennu.signals.DomainObjectEvent;
 import org.fenixedu.bennu.signals.Signal;
 import org.fenixedu.cms.domain.Site;
 import org.fenixedu.commons.i18n.LocalizedString;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 import pt.ist.fenixframework.FenixFramework;
+
+import static org.fenixedu.cms.domain.PermissionEvaluation.ensureCanDoThis;
+import static org.fenixedu.cms.domain.PermissionsArray.Permission.*;
 
 @DefaultJsonAdapter(Site.class)
 public class SiteAdapter implements JsonAdapter<Site> {

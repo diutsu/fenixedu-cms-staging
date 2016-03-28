@@ -18,30 +18,21 @@
  */
 package org.fenixedu.cms.ui;
 
-import static java.util.Optional.ofNullable;
-
+import com.google.common.base.Strings;
 import org.fenixedu.bennu.core.groups.Group;
-import org.fenixedu.bennu.core.groups.UserGroup;
 import org.fenixedu.bennu.core.security.Authenticate;
 import org.fenixedu.bennu.spring.portal.BennuSpringController;
-import org.fenixedu.cms.domain.CMSFolder;
-import org.fenixedu.cms.domain.CMSTheme;
-import org.fenixedu.cms.domain.CmsSettings;
-import org.fenixedu.cms.domain.DefaultRoles;
-import org.fenixedu.cms.domain.Role;
-import org.fenixedu.cms.domain.Site;
-import org.fenixedu.cms.domain.SiteActivity;
+import org.fenixedu.cms.domain.*;
 import org.fenixedu.commons.i18n.LocalizedString;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
-
-import com.google.common.base.Strings;
-
 import pt.ist.fenixframework.Atomic;
 import pt.ist.fenixframework.FenixFramework;
+
+import static java.util.Optional.ofNullable;
 
 @BennuSpringController(AdminSites.class)
 @RequestMapping("/cms/sites/new")
@@ -77,7 +68,7 @@ public class CreateSite {
 
         Role adminRole = new Role(DefaultRoles.getInstance().getAdminRole(), site);
         if (!Group.parse("#managers").isMember(Authenticate.getUser())) {
-            adminRole.setGroup(UserGroup.of(Authenticate.getUser()).toPersistentGroup());
+            adminRole.setGroup(Group.users(Authenticate.getUser()).toPersistentGroup());
         }
         new Role(DefaultRoles.getInstance().getAuthorRole(), site);
         new Role(DefaultRoles.getInstance().getContributorRole(), site);
