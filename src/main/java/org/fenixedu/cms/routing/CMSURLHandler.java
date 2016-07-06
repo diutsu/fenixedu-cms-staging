@@ -198,8 +198,7 @@ public final class CMSURLHandler implements SemanticURLHandler {
             return;
         } else if (req.getMethod().equals("POST")) {
             if (CoreConfiguration.getConfiguration().developmentMode()) {
-                PebbleEngine engine = new PebbleEngine(new StringLoader());
-                engine.addExtension(new CMSExtensions());
+                PebbleEngine engine = new PebbleEngine.Builder().loader(new StringLoader()).extension(new CMSExtensions()).build();
                 PebbleTemplate compiledTemplate =
                         engine.getTemplate("<html><head></head><body><h1>POST action with backslash</h1><b>You posting data with a URL with a backslash. Alter the form to post with the same URL without the backslash</body></html>");
                 res.setStatus(500);
