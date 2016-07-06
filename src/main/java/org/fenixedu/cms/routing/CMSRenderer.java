@@ -47,7 +47,7 @@ public class CMSRenderer {
 
     private static final Set<RenderingPageHandler> HANDLERS = new HashSet<>();
 
-    private final PebbleEngine engine = new PebbleEngine(new ClasspathLoader() {
+    private final PebbleEngine engine = new PebbleEngine.Builder().loader(new ClasspathLoader() {
         @Override
         public Reader getReader(String templateName) throws LoaderException {
             String[] parts = templateName.split("/", 2);
@@ -66,15 +66,14 @@ public class CMSRenderer {
             }
             return new InputStreamReader(new ByteArrayInputStream(bytes), StandardCharsets.UTF_8);
         }
-    });
+    })
+    .extension(new CMSExtensions())
+    .templateCache( CMSConfigurationManager.isInThemeDevelopmentMode() ? null:  CacheBuilder.newBuilder().expireAfterWrite(10,
+        TimeUnit.MINUTES).build()).build();
 
     public CMSRenderer() {
-        engine.addExtension(new CMSExtensions());
-        if (CMSConfigurationManager.isInThemeDevelopmentMode()) {
-            engine.setTemplateCache(null);
+        if(CMSConfigurationManager.isInThemeDevelopmentMode()){
             logger.info("CMS Theme Development Mode enabled!");
-        } else {
-            engine.setTemplateCache(CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build());
         }
     }
 
