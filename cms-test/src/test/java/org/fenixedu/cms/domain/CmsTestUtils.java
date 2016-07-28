@@ -35,7 +35,9 @@ public class CmsTestUtils {
 
         Site site = new Site(siteName, siteDescription);
 
-        site.setCanAdminGroup(Group.users(user));
+        Role adminRole = new Role(DefaultRoles.getInstance().getAdminRole(), site);
+        adminRole.setGroup(Group.users(user).toPersistentGroup());
+
         return site;
     }
 
